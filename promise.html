@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Promise Animation Visualizer</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        background: #1e1e2e;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+      }
+
+      h2 {
+        margin-bottom: 20px;
+      }
+
+      /* คอนเทนเนอร์แสดงการไหลของข้อมูล */
+      .pipeline {
+        display: flex;
+        align-items: center;
+        gap: 40px;
+        position: relative;
+        background: #2b2b3b;
+        padding: 40px 60px;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      }
+
+      /* กล่อง Promise Box */
+      .promise-box {
+        width: 160px;
+        height: 100px;
+        border: 3px dashed #89b4fa;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        transition: all 0.4s ease;
+        background: #181825;
+      }
+
+      /* สถานะของ Promise */
+      .promise-box.pending {
+        border-color: #f9e2af;
+        color: #f9e2af;
+        animation: pulse 1.2s infinite alternate;
+      }
+
+      .promise-box.fulfilled {
+        border-color: #a6e3a1;
+        border-style: solid;
+        background: #15372c;
+        color: #a6e3a1;
+      }
+
+      .promise-box.rejected {
+        border-color: #f38ba8;
+        border-style: solid;
+        background: #3c1f2e;
+        color: #f38ba8;
+      }
+
+      /* ก้อนข้อมูล (Data Packet) */
+      .packet {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #f9e2af;
+        position: absolute;
+        left: 60px;
+        opacity: 0;
+        transition:
+          transform 1.5s cubic-bezier(0.4, 0, 0.2, 1),
+          opacity 0.3s;
+      }
+
+      /* ปุ่มควบคุม */
+      .controls {
+        margin-top: 30px;
+        display: flex;
+        gap: 15px;
+      }
+
+      button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: opacity 0.2s;
+      }
+
+      button:hover {
+        opacity: 0.8;
+      }
+      .btn-resolve {
+        background: #a6e3a1;
+        color: #11111b;
+      }
+      .btn-reject {
+        background: #f38ba8;
+        color: #11111b;
+      }
+
+      @keyframes pulse {
+        from {
+          transform: scale(1);
+        }
+        to {
+          transform: scale(1.03);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Promise Data Flow Animation</h2>
+
+    <div class="pipeline">
+      <div id="packet" class="packet"></div>
+      <div id="promiseBox" class="promise-box">
+        <span>STATE</span>
+        <small id="statusText">Idle</small>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-resolve" onclick="runPromise(true)">
+        Run resolve()
+      </button>
+      <button class="btn-reject" onclick="runPromise(false)">
+        Run reject()
+      </button>
+    </div>
+
+    <script>
+      function runPromise(shouldSucceed) {
+        const box = document.getElementById('promiseBox');
+        const statusText = document.getElementById('statusText');
+        const packet = document.getElementById('packet');
+
+        // 1. เริ่มต้นสถานะเป็น Pending
+        box.className = 'promise-box pending';
+        statusText.innerText = 'Pending...';
+
+        // รีเซ็ตตำแหน่งก้อนข้อมูล
+        packet.style.opacity = '1';
+        packet.style.transform = 'translateX(0px)';
+        packet.style.background = '#f9e2af';
+
+        // จำลอง Async Operation
+        const myPromise = new Promise((resolve, reject) => {
+          // ส่งก้อนข้อมูลไปยัง Promise Box (ใช้เวลา 1.5s)
+          packet.style.transform = 'translateX(120px)';
+
+          setTimeout(() => {
+            if (shouldSucceed) {
+              resolve('Data Loaded!');
+            } else {
+              reject('Network Error!');
+            }
+          }, 1500);
+        });
+
+        // 2. จัดการเมื่อ Promise ทำงานเสร็จสิ้น (Fulfilled / Rejected)
+        myPromise
+          .then((result) => {
+            box.className = 'promise-box fulfilled';
+            statusText.innerText = 'Fulfilled\n(' + result + ')';
+            packet.style.background = '#a6e3a1';
+          })
+          .catch((error) => {
+            box.className = 'promise-box rejected';
+            statusText.innerText = 'Rejected\n(' + error + ')';
+            packet.style.background = '#f38ba8';
+          })
+          .finally(() => {
+            // ซ่อนก้อนข้อมูลหลังจากประมวลผลเสร็จ
+            setTimeout(() => {
+              packet.style.opacity = '0';
+            }, 500);
+          });
+      }
+    </script>
+  </body>
+</html>
